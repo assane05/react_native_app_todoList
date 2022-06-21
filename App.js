@@ -1,34 +1,68 @@
-import { useState } from 'react';
-import { Button, StyleSheet, Text, View, TextInput } from 'react-native';
+import { useState } from "react";
+import { StyleSheet, View, FlatList, Button } from "react-native";
+import TaskItem from "./components/TaskItem";
+import TaskInput from "./components/TaskInput";
 
 export default function App() {
-  const [enteredTaskText, setEnteredTastText] = useState('');
+  const [modalIsVisible, setModalIsVisible] = useState(false);
   const [courseTask, setCourseTask] = useState([]);
 
-  function taskInputHandler(enteredText) {
-    setEnteredTastText(enteredText);
-  }
-  function addInputHandler() {
-    setCourseTask((currentCourseTask) =>[
-      ...currentCourseTask, enteredTaskText,
+  function addInputHandler(enteredTaskText) {
+    setCourseTask((currentCourseTask) => [
+      ...currentCourseTask,
+      // si on genere la clé
+      // { text: enteredTaskText, key: Math.random().toString() },
+
+      // si on utilise une api en utilisant l'element id
+      { text: enteredTaskText, id: Math.random().toString() },
     ]);
+    endAddGoalHandler();
   }
+  function deleteTaskHandler(id) {
+    setCourseTask((currentCourseTask) => {
+      return currentCourseTask.filter((task) => task.id !== id);
+    });
+  }
+
+  function startAddGoalHandler() {
+    setModalIsVisible(true);
+  }
+
+  function endAddGoalHandler() {
+    setModalIsVisible(false);
+  }
+
   return (
     <View style={styles.appContainer}>
-     <View style={styles.inputContainer}>
-      <TextInput 
-        style={styles.textInput} 
-        placeholder='task' 
-        onChangeText={taskInputHandler}
+      <Button
+        title="Add New Task"
+        color={"#5e0acc"}
+        onPress={startAddGoalHandler}
       />
-      <Button  
-        title='Add Task' 
-        onPress={addInputHandler}
+      <TaskInput
+        visible={modalIsVisible}
+        onCancel={endAddGoalHandler}
+        onAddTask={addInputHandler}
       />
-     </View>
-     <View style={styles.taskContainer}>
-      {courseTask.map((task) => <Text key={task}>{task}</Text>)}
-     </View>
+      <View style={styles.taskContainer}>
+        <FlatList
+          data={courseTask}
+          renderItem={(itemData) => {
+            return (
+              <TaskItem
+                text={itemData.item.text}
+                id={itemData.item.id}
+                onDeleteItem={deleteTaskHandler}
+              />
+            );
+          }}
+          // si on utilise une api en utilisant l'element id
+          keyExtractor={(item, index) => {
+            return item.id;
+          }}
+          alwaysBounceVertical={false}
+        />
+      </View>
     </View>
   );
 }
@@ -39,23 +73,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flex: 1,
   },
-  inputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    width: '70%',
-    marginRight: 8,
-    padding: 8,
-  },
   taskContainer: {
-    flex: 4,
-  }
+    flex: 5,
+  },
 });
